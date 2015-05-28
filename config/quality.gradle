@@ -1,0 +1,83 @@
+apply plugin: 'checkstyle'
+apply plugin: 'findbugs'
+apply plugin: 'pmd'
+
+// findbugs 依赖于编译后的class文件， 单独执行findbugs
+// checkstyle, pmd, lint 可以静态检查代码， 执行check一次执行。
+check.dependsOn 'checkstyle', 'pmd', 'lint'
+
+checkstyle {
+    toolVersion '6.1.1'
+}
+
+task checkstyle(type: Checkstyle) {
+    ignoreFailures = true
+    configFile file("${project.rootDir}/config/quality/checkstyle/checkstyle.xml")
+    configProperties.checkstyleSuppressionsPath = file("${project.rootDir}/config/quality/checkstyle/suppressions.xml").absolutePath
+    source 'src'
+    include '**/*.java'
+    exclude '**/gen/**'
+    classpath = files()
+}
+
+findbugs {
+    // JDK 1.6 use 2.03 findbugs version
+    toolVersion = "2.0.3"
+}
+
+task findbugs(type: FindBugs) {
+    ignoreFailures = true
+    effort = "max"
+    reportLevel = "high"
+    excludeFilter = new File("${project.rootDir}/config/quality/findbugs/findbugs-filter.xml")
+    classes = files("${project.rootDir}/app/build/intermediates/classes")
+
+    source 'src'
+    include '**/*.java'
+    exclude '**/gen/**'
+
+    reports {
+        xml.enabled = false
+        html.enabled = true
+        xml {
+            destination "$project.buildDir/reports/findbugs/findbugs.xml"
+        }
+        html {
+            destination "$project.buildDir/reports/findbugs/findbugs.html"
+        }
+    }
+
+    classpath = files()
+}
+
+task pmd(type: Pmd) {
+    ignoreFailures = true
+    ruleSetFiles = files("${project.rootDir}/config/quality/pmd/pmd-ruleset.xml")
+    ruleSets = []
+
+    source 'src'
+    include '**/*.java'
+    exclude '**/gen/**'
+
+    reports {
+        xml.enabled = false
+        html.enabled = true
+        xml {
+            destination "$project.buildDir/reports/pmd/pmd.xml"
+        }
+        html {
+            destination "$project.buildDir/reports/pmd/pmd.html"
+        }
+    }
+}
+
+android {
+    lintOptions {
+        abortOnError false
+        xmlReport false
+        htmlReport true
+        lintConfig file("${project.rootDir}/config/quality/lint/lint.xml")
+        htmlOutput file("$project.buildDir/reports/lint/lint-result.html")
+        xmlOutput file("$project.buildDir/reports/lint/lint-result.xml")
+    }
+}

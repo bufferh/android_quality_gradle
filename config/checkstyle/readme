@@ -1,0 +1,3 @@
+gradle 2.2.1 执行的是checkestyle6.1.1 的规则，
+而官网的checkstyle.xml 的规则是基于6.3以上的， 因此这里只能执行google_checkstyle.xml
+或huawei_checkstyle.xml
